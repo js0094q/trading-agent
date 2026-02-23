@@ -1,7 +1,7 @@
 # Trading Ruleset (US equities • Cash • 5m • RTH • ~30 min holds)
 
 ## Universe & Session
-- **Market:** US equities (stocks only)
+- **Market:** US equities (stocks and ETFs only)
 - **Session:** **RTH only** (no pre/after-hours entries)
 - **Allowed instruments:** stocks
 - **Disallowed:** 0DTE options, leveraged ETFs

@@ -1,13 +1,34 @@
 {
-  "max_risk_per_trade_pct": 0.005,
-  "max_daily_loss_pct": 0.02,
-  "max_positions": 2,
-  "max_total_concurrent_risk_pct": 0.005,
-  "slippage_bps": 2,
+  {
+  "bankroll_usd": 200.0,
+  "broker": "Robinhood",
   "commission_per_trade": 0.0,
+  "assumed_commissions": "RH $0 commissions (regulatory fees may apply on sells)",
+  "max_risk_per_trade_pct": 0.07,
+  "max_risk_per_trade_usd": 14.0,
+  "max_daily_loss_pct": 0.03,
+  "max_daily_loss_usd": 6.0,
+  "max_positions": 2,
+  "max_total_concurrent_risk_pct": 0.14,
+  "max_total_concurrent_risk_usd": 28.0,
+  "slippage_bps": 2,
   "min_avg_volume": 2000000,
   "max_spread_pct": 0.002,
-  "timeframe": "5m",
+  "timeframe": "15m",
   "session": "RTH",
-  "notes": "Defaults derived from strategy_spec.md; replace with live account values."
+  "position_sizing": {
+    "method": "fixed_fractional_risk",
+    "risk_per_trade_usd": 14.0,
+    "shares_rule": "floor(min(bankroll_usd, max_notional_usd) / entry_price)",
+    "max_notional_usd": 200.0,
+    "stop_distance_rule": "abs(entry_price - stop_price)",
+    "expected_loss_rule": "shares * stop_distance + (shares * entry_price * slippage_bps/10000)"
+  },
+  "execution": {
+    "order_type_preference": "limit",
+    "avoid_market_orders": true,
+    "spread_filter_enforced": true,
+    "notes": "With $200, slippage dominates. Use limit orders, skip if spread widens beyond threshold."
+  },
+  "notes": "Updated for bankroll $200, max daily loss 3%, risk per trade 7%, RH commissions assumed $0."
 }

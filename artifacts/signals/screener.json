@@ -1,4 +1,136 @@
-[
-  {"symbol": "NVDA", "rvol": 1.6, "spread_pct": 0.0008, "note": "liquid, clean daily flag"},
-  {"symbol": "AAPL", "rvol": 1.2, "spread_pct": 0.0006, "note": "mega-cap, tight spreads"}
-]
+{
+  "meta": {
+    "name": "tomorrow_screener",
+    "as_of_date": "2026-02-24",
+    "timezone": "America/New_York",
+    "purpose": "Pre-market watchlist + liquid movers with tight execution costs, suitable for day/swing setups."
+  },
+  "defaults": {
+    "min_price_usd": 2.0,
+    "max_price_usd": 2000.0,
+    "min_avg_dollar_volume_20d": 20000000,
+    "min_rvol": 1.3,
+    "max_spread_pct": 0.0025,
+    "min_atr_pct_14d": 0.015,
+    "exclude_halt_risk": true,
+    "exclude_recent_reverse_splits_days": 60,
+    "require_options_liquidity": false,
+    "notes": {
+      "rvol": "Relative volume vs 20-day average (or comparable baseline).",
+      "spread_pct": "Typical quoted spread / mid price (e.g., 0.001 = 0.10%).",
+      "atr_pct": "ATR(14) / price, filters for movement potential."
+    }
+  },
+  "asset_classes": {
+    "stocks": {
+      "enabled": true,
+      "rules": {
+        "min_market_cap_usd": 2000000000,
+        "min_avg_share_volume_20d": 3000000,
+        "max_spread_pct": 0.0020,
+        "min_rvol": 1.3,
+        "min_gap_pct_premarket": 0.0,
+        "catalyst_required": false
+      },
+      "preferred_universe": [
+        "mega_cap",
+        "large_cap",
+        "liquid_mid_cap"
+      ],
+      "tags": [
+        "trend",
+        "breakout",
+        "mean_reversion",
+        "earnings",
+        "news"
+      ]
+    },
+    "etfs": {
+      "enabled": true,
+      "rules": {
+        "min_avg_dollar_volume_20d": 50000000,
+        "max_spread_pct": 0.0015,
+        "min_rvol": 1.2,
+        "min_atr_pct_14d": 0.01
+      },
+      "preferred_universe": [
+        "index",
+        "sector",
+        "thematic_liquid"
+      ],
+      "tags": [
+        "risk_on",
+        "risk_off",
+        "sector_strength",
+        "volatility"
+      ]
+    },
+    "crypto": {
+      "enabled": true,
+      "venue": "spot",
+      "quote_currency": "USD",
+      "rules": {
+        "min_24h_quote_volume_usd": 100000000,
+        "max_spread_pct": 0.0015,
+        "min_rvol": 1.2,
+        "min_atr_pct_14d": 0.02
+      },
+      "preferred_universe": [
+        "majors",
+        "top_20_liquid"
+      ],
+      "tags": [
+        "momentum",
+        "breakout",
+        "range"
+      ]
+    }
+  },
+  "output": {
+    "sort_by": [
+      { "field": "rvol", "direction": "desc" },
+      { "field": "atr_pct_14d", "direction": "desc" }
+    ],
+    "limit_per_asset_class": {
+      "stocks": 30,
+      "etfs": 20,
+      "crypto": 20
+    },
+    "fields": [
+      "symbol",
+      "asset_class",
+      "rvol",
+      "spread_pct",
+      "atr_pct_14d",
+      "avg_dollar_volume_20d",
+      "note",
+      "tags"
+    ]
+  },
+  "watchlist": [
+    { "symbol": "NVDA", "asset_class": "stocks", "rvol": 1.6, "spread_pct": 0.0008, "note": "liquid, clean daily flag", "tags": ["trend", "breakout"] },
+    { "symbol": "AAPL", "asset_class": "stocks", "rvol": 1.2, "spread_pct": 0.0006, "note": "mega-cap, tight spreads", "tags": ["trend", "mean_reversion"] },
+
+    { "symbol": "MSFT", "asset_class": "stocks", "rvol": 1.2, "spread_pct": 0.0007, "note": "mega-cap leader, clean technicals", "tags": ["trend"] },
+    { "symbol": "AMZN", "asset_class": "stocks", "rvol": 1.3, "spread_pct": 0.0009, "note": "liquid, tends to respect key levels", "tags": ["trend", "breakout"] },
+    { "symbol": "META", "asset_class": "stocks", "rvol": 1.3, "spread_pct": 0.0010, "note": "high liquidity, momentum-friendly", "tags": ["momentum"] },
+    { "symbol": "TSLA", "asset_class": "stocks", "rvol": 1.5, "spread_pct": 0.0012, "note": "volatile, good ATR, watch whipsaws", "tags": ["momentum", "range"] },
+    { "symbol": "AMD", "asset_class": "stocks", "rvol": 1.4, "spread_pct": 0.0011, "note": "semis sympathy, reacts to NVDA", "tags": ["trend"] },
+    { "symbol": "AVGO", "asset_class": "stocks", "rvol": 1.2, "spread_pct": 0.0010, "note": "liquid mega, steadier mover", "tags": ["trend"] },
+
+    { "symbol": "SPY", "asset_class": "etfs", "rvol": 1.2, "spread_pct": 0.0002, "note": "benchmark liquidity, best execution", "tags": ["risk_on"] },
+    { "symbol": "QQQ", "asset_class": "etfs", "rvol": 1.3, "spread_pct": 0.0003, "note": "tech beta, pairs well with mega-cap reads", "tags": ["sector_strength"] },
+    { "symbol": "IWM", "asset_class": "etfs", "rvol": 1.3, "spread_pct": 0.0006, "note": "small-cap risk gauge", "tags": ["risk_on"] },
+    { "symbol": "SMH", "asset_class": "etfs", "rvol": 1.4, "spread_pct": 0.0008, "note": "semis basket, cleaner than single names", "tags": ["sector_strength"] },
+    { "symbol": "XLF", "asset_class": "etfs", "rvol": 1.2, "spread_pct": 0.0007, "note": "financials, macro sensitivity", "tags": ["sector_strength"] },
+    { "symbol": "XLE", "asset_class": "etfs", "rvol": 1.2, "spread_pct": 0.0008, "note": "energy beta, headline risk", "tags": ["sector_strength"] },
+    { "symbol": "XLV", "asset_class": "etfs", "rvol": 1.1, "spread_pct": 0.0007, "note": "healthcare defensive tilt", "tags": ["risk_off"] },
+    { "symbol": "TLT", "asset_class": "etfs", "rvol": 1.3, "spread_pct": 0.0009, "note": "rates proxy, risk-off tell", "tags": ["risk_off"] },
+    { "symbol": "GLD", "asset_class": "etfs", "rvol": 1.2, "spread_pct": 0.0006, "note": "gold macro hedge", "tags": ["risk_off"] },
+    { "symbol": "VIXY", "asset_class": "etfs", "rvol": 1.3, "spread_pct": 0.0015, "note": "volatility exposure, handle carefully", "tags": ["volatility"] },
+
+    { "symbol": "BTC-USD", "asset_class": "crypto", "rvol": 1.2, "spread_pct": 0.0004, "note": "most liquid, sets crypto tape", "tags": ["momentum"] },
+    { "symbol": "ETH-USD", "asset_class": "crypto", "rvol": 1.2, "spread_pct": 0.0006, "note": "high liquidity, strong beta", "tags": ["momentum"] },
+    { "symbol": "SOL-USD", "asset_class": "crypto", "rvol": 1.3, "spread_pct": 0.0010, "note": "volatile, strong intraday ranges", "tags": ["breakout", "range"] }
+  ]
+}
