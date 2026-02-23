@@ -3,134 +3,584 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Trading Agent Starter</title>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23111b27'/%3E%3Cpath d='M16 34l9 10 23-24' stroke='%234ade80' stroke-width='6' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E">
+  <title>BLACKJ Trainer</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&display=swap');
     :root {
-      --bg: #0f1720;
-      --panel: #111b27;
-      --accent: #4ade80;
-      --text: #e8edf5;
-      --muted: #92a2b8;
-      --code: #0c1420;
+      --bg: #070a0f;
+      --panel: #0d121b;
+      --muted: #7f8ca3;
+      --text: #e9eef7;
+      --accent: #46f0a6;
+      --danger: #ff6b6b;
+      --warning: #f5d06f;
+      --band-neg: #ff7b7b;
+      --band-neutral: #94a3b8;
+      --band-pos: #4fd1c5;
+      --band-high: #7cfc85;
+      --glass: rgba(255,255,255,0.04);
     }
     * { box-sizing: border-box; }
     body {
       margin: 0;
-      font-family: 'Space Grotesk', sans-serif;
-      background: radial-gradient(circle at 20% 20%, #142233 0%, #0b111a 45%, #080d14 100%);
+      font-family: "Inter", "SF Pro Display", "Segoe UI", sans-serif;
+      background: radial-gradient(circle at 20% 20%, #0d1320 0%, #05070b 70%);
       color: var(--text);
       min-height: 100vh;
-      padding: 32px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      padding: 18px;
     }
-    .card {
-      width: min(900px, 100%);
-      background: linear-gradient(145deg, var(--panel), #0d1621);
-      border: 1px solid #1f2c3c;
-      border-radius: 18px;
-      padding: 32px;
-      box-shadow: 0 18px 50px rgba(0,0,0,0.45);
+    .shell { max-width: 1100px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
+    header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .title { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .tag { background: var(--glass); color: var(--accent); border: 1px solid rgba(70,240,166,0.3); padding: 6px 10px; border-radius: 999px; font-weight: 700; font-size: 12px; letter-spacing: 0.4px; }
+    h1 { margin: 0; font-size: 26px; letter-spacing: -0.2px; }
+    .controls { display: flex; flex-wrap: wrap; gap: 8px; }
+    button { background: var(--glass); color: var(--text); border: 1px solid #1e2735; border-radius: 10px; padding: 10px 12px; font-weight: 700; letter-spacing: 0.2px; cursor: pointer; transition: border-color 120ms ease, transform 120ms ease, background 120ms ease; }
+    button:hover { border-color: var(--accent); transform: translateY(-1px); }
+    button.primary { background: var(--accent); color: #06100d; border-color: var(--accent); }
+    button.danger { border-color: rgba(255,107,107,0.5); color: var(--danger); }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(230px,1fr)); gap: 12px; }
+    .card { background: var(--panel); border: 1px solid #121a26; border-radius: 14px; padding: 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.35); }
+    .stat-row { display: grid; grid-template-columns: repeat(auto-fit,minmax(180px,1fr)); gap: 12px; }
+    .stat { background: var(--panel); border: 1px solid #131c2b; border-radius: 14px; padding: 12px; display: flex; flex-direction: column; gap: 6px; position: relative; }
+    .label { text-transform: uppercase; font-size: 11px; letter-spacing: 0.6px; color: var(--muted); font-weight: 700; }
+    .value { font-size: 32px; font-weight: 800; letter-spacing: -0.5px; }
+    .band-pill { display: inline-flex; align-items: center; gap: 8px; padding: 4px 10px; border-radius: 999px; font-weight: 700; border: 1px solid #1e2735; text-transform: uppercase; letter-spacing: 0.6px; font-size: 11px; }
+    .band-negative { color: var(--band-neg); border-color: rgba(255,123,123,0.4); }
+    .band-neutral { color: var(--band-neutral); border-color: rgba(148,163,184,0.5); }
+    .band-positive { color: var(--band-pos); border-color: rgba(79,209,197,0.4); }
+    .band-high { color: var(--band-high); border-color: rgba(124,252,133,0.6); }
+    .action-card { grid-column: span 2; background: linear-gradient(135deg,#0f1725,#0a0f18 45%,#0a141d); padding: 18px; border: 1px solid #152032; }
+    .action-text { font-size: clamp(40px, 7vw, 64px); font-weight: 900; letter-spacing: -1px; margin: 4px 0; }
+    .note { color: var(--muted); font-size: 14px; margin-top: 2px; }
+    .pill { display: inline-flex; align-items: center; gap: 6px; background: var(--glass); border: 1px solid #1e2735; padding: 4px 9px; border-radius: 999px; font-size: 12px; font-weight: 700; letter-spacing: 0.3px; }
+    .pill.deviation { color: #ffd166; border-color: rgba(255,209,102,0.6); }
+    .pill.base { color: var(--muted); }
+    .stack { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .chips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+    .chip { padding: 6px 10px; border-radius: 10px; background: var(--glass); border: 1px solid #1e2735; font-weight: 700; letter-spacing: 0.3px; }
+    .muted { color: var(--muted); font-size: 13px; }
+    .target { display: flex; gap: 8px; }
+    .target button { flex: 1; }
+    .target button.active { border-color: var(--accent); color: var(--accent); }
+    .hint { font-size: 12px; color: var(--muted); margin-top: 6px; }
+    .flash { animation: tcFlash 220ms ease-out; }
+    @keyframes tcFlash { from { box-shadow: 0 0 0 rgba(70,240,166,0.0); background: #0b1b16; } to { box-shadow: 0 0 16px rgba(70,240,166,0.35); background: #0a1219; } }
+    .overlay { position: fixed; inset: 0; background: rgba(4,6,10,0.92); color: var(--text); display: flex; justify-content: center; align-items: center; padding: 20px; z-index: 30; backdrop-filter: blur(6px); }
+    .overlay .card { max-width: 720px; width: 100%; }
+    .hidden { display: none !important; }
+    /* Hardcore mode */
+    body.hardcore { background: #04070c; }
+    body.hardcore .hide-when-hardcore { display: none !important; }
+    body.hardcore .action-text { font-size: clamp(52px, 12vw, 86px); }
+    body.hardcore .action-card { border-color: rgba(70,240,166,0.25); box-shadow: none; }
+    body.hardcore .band-pill { border-color: rgba(124,252,133,0.55); }
+    @media (max-width: 720px) {
+      header { flex-direction: column; align-items: flex-start; }
+      .action-card { grid-column: span 1; }
     }
-    h1 { margin: 0 0 12px; font-size: 32px; letter-spacing: -0.5px; }
-    p { margin: 0 0 12px; color: var(--muted); }
-    .cta-row { display:flex; flex-wrap:wrap; gap:12px; margin:14px 0 6px; }
-    .cta {
-      display:inline-flex; align-items:center; gap:8px;
-      padding:10px 14px; border-radius:10px;
-      background: #1b2736; color: var(--text);
-      border: 1px solid #243449;
-      text-decoration: none; font-weight:600; letter-spacing:0.1px;
-      transition: transform 120ms ease, border-color 120ms ease, background 120ms ease;
-    }
-    .cta:hover { transform: translateY(-2px); border-color: var(--accent); }
-    .cta.primary { background: var(--accent); color: #0a120f; border-color: var(--accent); }
-    .cta.primary:hover { background: #6eee9a; }
-    .pill {
-      display: inline-block;
-      padding: 6px 10px;
-      border-radius: 999px;
-      background: rgba(74, 222, 128, 0.12);
-      color: var(--accent);
-      font-weight: 600;
-      font-size: 13px;
-      letter-spacing: 0.2px;
-      margin-right: 8px;
-    }
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 18px;
-      margin-top: 18px;
-    }
-    .panel {
-      background: #0c141e;
-      border: 1px solid #1c2837;
-      border-radius: 14px;
-      padding: 16px;
-    }
-    .panel h3 { margin: 0 0 8px; font-size: 18px; }
-    code, pre {
-      font-family: 'SFMono-Regular', Menlo, Consolas, monospace;
-      background: var(--code);
-      color: #c3d2e8;
-      border-radius: 10px;
-    }
-    pre {
-      padding: 12px;
-      margin: 8px 0 0;
-      overflow-x: auto;
-      border: 1px solid #1c2837;
-    }
-    ul { margin: 6px 0 0 18px; color: var(--muted); line-height: 1.5; }
-    a { color: var(--accent); text-decoration: none; }
-    a:hover { text-decoration: underline; }
   </style>
 </head>
 <body>
-  <div class="card">
-    <div class="pill">Dependency-free</div>
-    <div class="pill">CLI-first</div>
-    <h1>Trading Agent Starter</h1>
-    <p>Two lightweight agents: Research (daily prep) and Risk/Sizing (order-ready sizes). Bring your own data and signals; the runner enforces guardrails and writes artifacts.</p>
+  <main class="shell">
+    <header>
+      <div class="title">
+        <span class="tag">BLACKJ Trainer · Hi-Lo · 6D · H17 · DAS</span>
+        <h1>Ultra-low-latency deviation trainer</h1>
+      </div>
+      <div class="controls hide-when-hardcore">
+        <button id="noiseBtn">Noise (N)</button>
+        <button id="hardcoreBtn" class="primary">Hardcore (M)</button>
+        <button id="overlayBtn">Overlay (O)</button>
+        <button id="resetBtn" class="danger">Reset (X)</button>
+      </div>
+    </header>
 
-    <div class="grid">
-      <div class="panel">
-        <h3>Commands</h3>
-        <pre>./agent_runner.py research --stub
-./agent_runner.py sizing --equity 100000</pre>
-        <ul>
-          <li>Research: validates inputs and can emit stub outputs.</li>
-          <li>Sizing: strict stop-distance checks, clamps to risk caps.</li>
-        </ul>
-        <div class="cta-row">
-          <a class="cta primary" href="https://github.com/js0094q/trading-agent" target="_blank" rel="noreferrer">GitHub Repo</a>
-          <a class="cta" href="README.md" target="_blank">README</a>
+    <section class="stat-row">
+      <div class="stat" id="rcStat">
+        <div class="label">Running Count</div>
+        <div class="value" id="rcValue">0</div>
+        <div class="muted">Hi-Lo, explicit state</div>
+      </div>
+      <div class="stat" id="tcStat">
+        <div class="label">True Count</div>
+        <div class="value" id="tcValue">0</div>
+        <div class="stack">
+          <span id="bandPill" class="band-pill band-neutral">Neutral</span>
+          <span class="pill base" id="decksSeen">0 decks seen</span>
         </div>
       </div>
-      <div class="panel">
-        <h3>Inputs</h3>
-        <ul>
-          <li><code>inputs/preferences.json</code></li>
-          <li><code>inputs/universe.txt</code></li>
-          <li><code>inputs/strategy_spec.md</code></li>
-          <li><code>artifacts/signals/trade_plans.json</code></li>
-          <li>Optional: <code>artifacts/signals/screener.json</code></li>
-        </ul>
+      <div class="stat action-card">
+        <div class="label">Recommended Action</div>
+        <div class="stack">
+          <span class="pill base" id="baseAction">—</span>
+          <span class="pill deviation hidden" id="deviationBadge">Deviation</span>
+        </div>
+        <div class="action-text" id="actionText">—</div>
+        <div class="note" id="actionNote">Add player + dealer cards to start.</div>
       </div>
-      <div class="panel">
-        <h3>Outputs</h3>
-        <ul>
-          <li><a href="artifacts/research/daily_brief.md" target="_blank">daily_brief.md</a></li>
-          <li><a href="artifacts/research/watchlist.json" target="_blank">watchlist.json</a></li>
-          <li><a href="artifacts/sizing/order_sheet.json" target="_blank">order_sheet.json</a></li>
-          <li><a href="artifacts/sizing/risk_checklist.md" target="_blank">risk_checklist.md</a></li>
-        </ul>
+    </section>
+
+    <section class="grid state-grid hide-when-hardcore">
+      <div class="card">
+        <div class="label">Player Hand</div>
+        <div class="chips" id="playerChips"></div>
+        <div class="note" id="playerTotal">Total —</div>
       </div>
-    </div>
-  </div>
+      <div class="card">
+        <div class="label">Dealer Upcard</div>
+        <div class="chips" id="dealerChips"></div>
+        <div class="note" id="dealerTotal">Total —</div>
+      </div>
+      <div class="card">
+        <div class="label">Cards Seen</div>
+        <div class="value" id="cardsSeen">0</div>
+        <div class="note">Undo with Backspace. Log limit: 50.</div>
+      </div>
+      <div class="card">
+        <div class="label">Input Target</div>
+        <div class="target">
+          <button data-target="table" id="tTarget">Table (T)</button>
+          <button data-target="player" id="pTarget">Player (P)</button>
+          <button data-target="dealer" id="dTarget">Dealer (D)</button>
+        </div>
+        <div class="hint">Burst entry: type cards; Backspace=undo; X=reset; O=overlay.</div>
+      </div>
+    </section>
+
+    <section class="card hide-when-hardcore" id="hintPanel">
+      <div class="label">Keys</div>
+      <p class="muted">2–9, 0/T/J/Q/K = Ten, A = Ace. N = Noise (6–18 neutral cards). M = Hardcore. O = Overlay. Backspace = undo last token. X = reset shoe. P/D/T switch input target.</p>
+    </section>
+  </main>
+
+  <div id="overlayHost"></div>
+
+  <script>
+    (() => {
+      const N_DECKS = 6;
+      const LOG_LIMIT = 50;
+      const COUNT = { "2": 1, "3": 1, "4": 1, "5": 1, "6": 1, "7": 0, "8": 0, "9": 0, "T": -1, "J": -1, "Q": -1, "K": -1, "A": -1 };
+      const CARD_KEY = { "2": "2", "3": "3", "4": "4", "5": "5", "6": "6", "7": "7", "8": "8", "9": "9", "0": "T", "t": "T", "j": "J", "q": "Q", "k": "K", "a": "A", "1": "A" };
+
+      const state = {
+        rc: 0,
+        tc: 0,
+        cardsSeen: 0,
+        decksSeen: 0,
+        band: "NEUTRAL",
+        player: [],
+        dealer: [],
+        inputTarget: "table",
+        hardcore: false,
+        undo: []
+      };
+
+      const els = {
+        rcValue: document.getElementById("rcValue"),
+        tcValue: document.getElementById("tcValue"),
+        bandPill: document.getElementById("bandPill"),
+        decksSeen: document.getElementById("decksSeen"),
+        actionText: document.getElementById("actionText"),
+        baseAction: document.getElementById("baseAction"),
+        deviationBadge: document.getElementById("deviationBadge"),
+        actionNote: document.getElementById("actionNote"),
+        playerChips: document.getElementById("playerChips"),
+        dealerChips: document.getElementById("dealerChips"),
+        playerTotal: document.getElementById("playerTotal"),
+        dealerTotal: document.getElementById("dealerTotal"),
+        cardsSeen: document.getElementById("cardsSeen"),
+        tTarget: document.getElementById("tTarget"),
+        pTarget: document.getElementById("pTarget"),
+        dTarget: document.getElementById("dTarget"),
+        noiseBtn: document.getElementById("noiseBtn"),
+        resetBtn: document.getElementById("resetBtn"),
+        overlayBtn: document.getElementById("overlayBtn"),
+        hardcoreBtn: document.getElementById("hardcoreBtn"),
+        overlayHost: document.getElementById("overlayHost"),
+        tcStat: document.getElementById("tcStat"),
+        bandStat: document.getElementById("bandPill"),
+        rcStat: document.getElementById("rcStat")
+      };
+
+      const last = { rc: null, tc: null, band: null, decksSeen: null, action: "", base: "", deviation: false, note: "", playerKey: "", dealerKey: "", cardsSeen: null, target: "" };
+      let overlayEl = null;
+      let renderQueued = false;
+
+      function cardFromKey(key) {
+        return CARD_KEY[key] || null;
+      }
+
+      function pushUndo(entry) {
+        if (state.undo.length === LOG_LIMIT) state.undo.shift();
+        state.undo.push(entry);
+      }
+
+      function recalcCounts() {
+        state.decksSeen = state.cardsSeen / 52;
+        const decksRemaining = Math.max(N_DECKS - state.decksSeen, 0.25);
+        state.tc = state.rc / decksRemaining;
+        const nextBand = bandFromTC(state.tc);
+        if (nextBand !== state.band) {
+          state.band = nextBand;
+          flashTC();
+        }
+      }
+
+      function applyCard(rank, target) {
+        const delta = COUNT[rank];
+        if (delta === undefined) return;
+        pushUndo({ type: "card", delta, target, rank });
+        state.rc += delta;
+        state.cardsSeen += 1;
+        if (target === "player") state.player.push(rank);
+        else if (target === "dealer") state.dealer.push(rank);
+        recalcCounts();
+        scheduleRender();
+      }
+
+      function injectNoise() {
+        const count = 6 + Math.floor(Math.random() * 13); // 6..18
+        let delta = 0;
+        for (let i = 0; i < count; i += 1) delta += sampleNoiseDelta();
+        pushUndo({ type: "noise", delta, cards: count });
+        state.rc += delta;
+        state.cardsSeen += count;
+        recalcCounts();
+        scheduleRender();
+      }
+
+      function sampleNoiseDelta() {
+        const r = Math.random();
+        if (r < 0.34) return 1;
+        if (r < 0.68) return -1;
+        return 0;
+      }
+
+      function undo() {
+        const item = state.undo.pop();
+        if (!item) return;
+        if (item.type === "card") {
+          state.rc -= item.delta;
+          state.cardsSeen = Math.max(0, state.cardsSeen - 1);
+          if (item.target === "player" && state.player.length) state.player.pop();
+          else if (item.target === "dealer" && state.dealer.length) state.dealer.pop();
+        } else if (item.type === "noise") {
+          state.rc -= item.delta;
+          state.cardsSeen = Math.max(0, state.cardsSeen - item.cards);
+        }
+        recalcCounts();
+        scheduleRender();
+      }
+
+      function resetShoe() {
+        state.rc = 0;
+        state.tc = 0;
+        state.cardsSeen = 0;
+        state.decksSeen = 0;
+        state.player.length = 0;
+        state.dealer.length = 0;
+        state.band = "NEUTRAL";
+        state.undo.length = 0;
+        scheduleRender();
+      }
+
+      function bandFromTC(tc) {
+        if (tc <= -2) return "NEGATIVE";
+        if (tc < 1) return "NEUTRAL";
+        if (tc < 3) return "POSITIVE";
+        return "HIGH";
+      }
+
+      function flashTC() {
+        const el = els.tcStat;
+        el.classList.remove("flash");
+        void el.offsetWidth; // restart animation once per band change
+        el.classList.add("flash");
+      }
+
+      function setTarget(target) {
+        if (target === state.inputTarget) return;
+        state.inputTarget = target;
+        scheduleRender();
+      }
+
+      function toggleHardcore() {
+        state.hardcore = !state.hardcore;
+        document.body.classList.toggle("hardcore", state.hardcore);
+        scheduleRender();
+      }
+
+      function toggleOverlay() {
+        if (!overlayEl) overlayEl = buildOverlay();
+        overlayEl.classList.toggle("hidden");
+      }
+
+      function buildOverlay() {
+        const wrap = document.createElement("div");
+        wrap.className = "overlay";
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `
+          <div class="label">Overlay · keyboard map</div>
+          <div class="value" style="font-size:20px;">Fast keys</div>
+          <ul class="muted">
+            <li>2–9, 0/T/J/Q/K = 10, A/1 = Ace</li>
+            <li>P = Player target · D = Dealer target · T = Table target</li>
+            <li>N = Noise (6–18 neutral cards) · M = Hardcore · O = Toggle overlay</li>
+            <li>Backspace = undo last token · X = reset shoe</li>
+          </ul>
+          <p class="muted" style="margin-top:10px;">Overlay renders lazily and detaches any reflow from hot path.</p>
+        `;
+        wrap.appendChild(card);
+        wrap.addEventListener("click", toggleOverlay);
+        els.overlayHost.appendChild(wrap);
+        return wrap;
+      }
+
+      function handleKey(e) {
+        const key = e.key.toLowerCase();
+        if (key === "backspace") { e.preventDefault(); undo(); return; }
+        if (key === "n") { e.preventDefault(); injectNoise(); return; }
+        if (key === "m") { e.preventDefault(); toggleHardcore(); return; }
+        if (key === "o") { e.preventDefault(); toggleOverlay(); return; }
+        if (key === "x") { e.preventDefault(); resetShoe(); return; }
+        if (key === "p") { setTarget("player"); return; }
+        if (key === "d") { setTarget("dealer"); return; }
+        if (key === "t") { setTarget("table"); return; }
+        const rank = cardFromKey(key);
+        if (rank) {
+          applyCard(rank, state.inputTarget);
+        }
+      }
+
+      function trueCountDisplay(tc) {
+        // Floor toward zero to match quick-decision practice
+        const rounded = tc >= 0 ? Math.floor(tc * 10) / 10 : Math.ceil(tc * 10) / 10;
+        return rounded.toFixed(1);
+      }
+
+      function evaluateHand(cards) {
+        // cards is small; avoid cloning
+        let total = 0;
+        let aces = 0;
+        for (let i = 0; i < cards.length; i += 1) {
+          const c = cards[i];
+          if (c === "A") { aces += 1; total += 11; }
+          else if (c === "T" || c === "J" || c === "Q" || c === "K") total += 10;
+          else total += Number(c);
+        }
+        while (total > 21 && aces > 0) {
+          total -= 10;
+          aces -= 1;
+        }
+        const soft = aces > 0 && total <= 21;
+        const isPair = cards.length === 2 && cards[0] === cards[1];
+        return { total, soft, isPair, pairRank: cards[0], count: cards.length };
+      }
+
+      function dealerValue(card) {
+        if (!card) return null;
+        if (card === "A") return 11;
+        if (card === "T" || card === "J" || card === "Q" || card === "K") return 10;
+        return Number(card);
+      }
+
+      function basicStrategy(hand, dealerUp) {
+        if (hand.count === 0 || dealerUp === null) return { action: "—", note: "Add cards" };
+
+        if (hand.isPair) {
+          const r = hand.pairRank;
+          if (r === "A") return { action: "Split", note: "Pair of Aces" };
+          if (r === "T" || r === "J" || r === "Q" || r === "K") return { action: "Stand", note: "Pair of 10s" };
+          if (r === "9") return { action: (dealerUp === 7 || dealerUp >= 10) ? "Stand" : "Split", note: "9s split vs 2-6/8-9" };
+          if (r === "8") return { action: "Split", note: "Always split 8s" };
+          if (r === "7") return { action: dealerUp <= 7 ? "Split" : "Hit", note: "7s split 2-7" };
+          if (r === "6") return { action: dealerUp >= 2 && dealerUp <= 6 ? "Split" : "Hit", note: "6s split 2-6" };
+          if (r === "5") return hardTotals(10, dealerUp);
+          if (r === "4") return { action: (dealerUp === 5 || dealerUp === 6) ? "Split" : "Hit", note: "4s split 5-6" };
+          if (r === "3" || r === "2") return { action: dealerUp >= 2 && dealerUp <= 7 ? "Split" : "Hit", note: `${r}s split 2-7` };
+        }
+
+        if (hand.soft) return softTotals(hand.total, dealerUp);
+        return hardTotals(hand.total, dealerUp);
+      }
+
+      function softTotals(total, dealerUp) {
+        if (total >= 20) return { action: "Stand", note: "Soft 20" };
+        if (total === 19) return { action: dealerUp === 6 ? "Double" : "Stand", note: "Soft 19" };
+        if (total === 18) {
+          if (dealerUp >= 3 && dealerUp <= 6) return { action: "Double", note: "Soft 18 dbl 3-6" };
+          if (dealerUp === 2 || dealerUp === 7 || dealerUp === 8) return { action: "Stand", note: "Soft 18 stand 2/7/8" };
+          return { action: "Hit", note: "Soft 18 hit 9/10/A" };
+        }
+        if (total === 17) return { action: dealerUp >= 3 && dealerUp <= 6 ? "Double" : "Hit", note: "Soft 17 dbl 3-6" };
+        if (total === 16 || total === 15) return { action: dealerUp >= 4 && dealerUp <= 6 ? "Double" : "Hit", note: "Soft 15-16 dbl 4-6" };
+        if (total === 14 || total === 13) return { action: dealerUp === 5 || dealerUp === 6 ? "Double" : "Hit", note: "Soft 13-14 dbl 5-6" };
+        return { action: "Hit", note: "Soft" };
+      }
+
+      function hardTotals(total, dealerUp) {
+        if (total >= 17) return { action: "Stand", note: "Hard 17+" };
+        if (total === 16) return { action: dealerUp >= 2 && dealerUp <= 6 ? "Stand" : "Hit", note: "16 stand 2-6" };
+        if (total === 15) return { action: dealerUp >= 2 && dealerUp <= 6 ? "Stand" : "Hit", note: "15 stand 2-6" };
+        if (total === 14) return { action: dealerUp >= 2 && dealerUp <= 6 ? "Stand" : "Hit", note: "14 stand 2-6" };
+        if (total === 13) return { action: dealerUp >= 2 && dealerUp <= 6 ? "Stand" : "Hit", note: "13 stand 2-6" };
+        if (total === 12) return { action: dealerUp >= 4 && dealerUp <= 6 ? "Stand" : "Hit", note: "12 stand 4-6" };
+        if (total === 11) return { action: dealerUp === 11 ? "Hit" : "Double", note: "11 dbl except A" };
+        if (total === 10) return { action: dealerUp >= 2 && dealerUp <= 9 ? "Double" : "Hit", note: "10 dbl 2-9" };
+        if (total === 9) return { action: dealerUp >= 3 && dealerUp <= 6 ? "Double" : "Hit", note: "9 dbl 3-6" };
+        return { action: "Hit", note: "8 or less" };
+      }
+
+      function applyDeviations(base, hand, dealerUp, tc) {
+        // True count rounding toward zero
+        const tcf = tc >= 0 ? Math.floor(tc) : Math.ceil(tc);
+        let action = base.action;
+        let note = base.note;
+        let deviated = false;
+
+        if (!dealerUp || hand.count === 0) return { action, note, deviated };
+
+        // Illustrious-style deviations
+        if (!hand.soft) {
+          if (hand.total === 16 && dealerUp === 10) { if (tcf >= 0) { action = "Stand"; note = "16v10 stand TC≥0"; deviated = action !== base.action; } }
+          else if (hand.total === 15 && dealerUp === 10) { if (tcf >= 4) { action = "Stand"; note = "15v10 stand TC≥4"; deviated = action !== base.action; } }
+          else if (hand.total === 12 && dealerUp === 3) { if (tcf >= 2) { action = "Stand"; note = "12v3 stand TC≥2"; deviated = action !== base.action; } }
+          else if (hand.total === 12 && dealerUp === 2) { if (tcf >= 3) { action = "Stand"; note = "12v2 stand TC≥3"; deviated = action !== base.action; } }
+          else if (hand.total === 12 && dealerUp === 4) { if (tcf < 0) { action = "Hit"; note = "12v4 hit TC<0"; deviated = action !== base.action; } }
+          else if (hand.total === 12 && dealerUp === 5) { if (tcf < -2) { action = "Hit"; note = "12v5 hit TC≤-3"; deviated = action !== base.action; } }
+          else if (hand.total === 12 && dealerUp === 6) { if (tcf < -1) { action = "Hit"; note = "12v6 hit TC≤-2"; deviated = action !== base.action; } }
+          else if (hand.total === 16 && dealerUp === 9) { if (tcf >= 5) { action = "Stand"; note = "16v9 stand TC≥5"; deviated = action !== base.action; } }
+          else if (hand.total === 13 && dealerUp === 2) { if (tcf < -1) { action = "Hit"; note = "13v2 hit TC≤-2"; deviated = action !== base.action; } }
+          else if (hand.total === 13 && dealerUp === 3) { if (tcf < -2) { action = "Hit"; note = "13v3 hit TC≤-3"; deviated = action !== base.action; } }
+          else if (hand.total === 10 && dealerUp === 10) { if (tcf >= 4) { action = "Double"; note = "10v10 dbl TC≥4"; deviated = action !== base.action; } }
+          else if (hand.total === 10 && dealerUp === 11) { if (tcf >= 4) { action = "Double"; note = "10vA dbl TC≥4"; deviated = action !== base.action; } }
+          else if (hand.total === 11 && dealerUp === 11) { if (tcf >= 1) { action = "Double"; note = "11vA dbl TC≥1"; deviated = action !== base.action; } }
+          else if (hand.total === 9 && dealerUp === 2) { if (tcf >= 1) { action = "Double"; note = "9v2 dbl TC≥1"; deviated = action !== base.action; } }
+          else if (hand.total === 9 && dealerUp === 7) { if (tcf >= 3) { action = "Double"; note = "9v7 dbl TC≥3"; deviated = action !== base.action; } }
+        }
+
+        // Insurance: TC ≥ 3
+        if (dealerUp === 11 && tcf >= 3) {
+          action = "Insurance";
+          note = "Take insurance TC≥3";
+          deviated = action !== base.action;
+        }
+
+        return { action, note, deviated };
+      }
+
+      function actionSummary() {
+        const dealerUp = dealerValue(state.dealer[0]);
+        const hand = evaluateHand(state.player);
+        const base = basicStrategy(hand, dealerUp);
+        const withDev = applyDeviations(base, hand, dealerUp, state.tc);
+        return {
+          action: withDev.action,
+          base: base.action,
+          deviation: withDev.deviated,
+          note: withDev.note
+        };
+      }
+
+      function render() {
+        renderQueued = false;
+        if (last.rc !== state.rc) { els.rcValue.textContent = state.rc; last.rc = state.rc; }
+        const tcDisplay = trueCountDisplay(state.tc);
+        if (last.tc !== tcDisplay) { els.tcValue.textContent = tcDisplay; last.tc = tcDisplay; }
+
+        const band = state.band;
+        if (last.band !== band) {
+          last.band = band;
+          els.bandPill.textContent = band.toLowerCase();
+          els.bandPill.classList.remove("band-negative","band-neutral","band-positive","band-high");
+          if (band === "NEGATIVE") els.bandPill.classList.add("band-negative");
+          else if (band === "NEUTRAL") els.bandPill.classList.add("band-neutral");
+          else if (band === "POSITIVE") els.bandPill.classList.add("band-positive");
+          else els.bandPill.classList.add("band-high");
+        }
+
+        const ds = state.decksSeen.toFixed(2);
+        if (last.decksSeen !== ds) {
+          els.decksSeen.textContent = `${ds} decks seen`;
+          last.decksSeen = ds;
+        }
+
+        if (last.cardsSeen !== state.cardsSeen) {
+          els.cardsSeen.textContent = state.cardsSeen;
+          last.cardsSeen = state.cardsSeen;
+        }
+
+        const target = state.inputTarget;
+        if (last.target !== target) {
+          last.target = target;
+          els.tTarget.classList.toggle("active", target === "table");
+          els.pTarget.classList.toggle("active", target === "player");
+          els.dTarget.classList.toggle("active", target === "dealer");
+        }
+
+        // Render chips without cloning
+        const playerKey = state.player.join("");
+        if (last.playerKey !== playerKey) {
+          last.playerKey = playerKey;
+          renderChips(els.playerChips, state.player);
+          els.playerTotal.textContent = state.player.length ? `Total ${evaluateHand(state.player).total}${evaluateHand(state.player).soft ? " (soft)" : ""}` : "Total —";
+        }
+        const dealerKey = state.dealer.join("");
+        if (last.dealerKey !== dealerKey) {
+          last.dealerKey = dealerKey;
+          renderChips(els.dealerChips, state.dealer);
+          els.dealerTotal.textContent = state.dealer.length ? `Total ${dealerValue(state.dealer[0])}` : "Total —";
+        }
+
+        const summary = actionSummary();
+        if (last.action !== summary.action) {
+          els.actionText.textContent = summary.action;
+          last.action = summary.action;
+        }
+        if (last.base !== summary.base) {
+          els.baseAction.textContent = `Base: ${summary.base}`;
+          last.base = summary.base;
+        }
+        if (last.note !== summary.note) {
+          els.actionNote.textContent = summary.note || "";
+          last.note = summary.note;
+        }
+        if (last.deviation !== summary.deviation) {
+          last.deviation = summary.deviation;
+          els.deviationBadge.classList.toggle("hidden", !summary.deviation);
+        }
+      }
+
+      function renderChips(container, cards) {
+        while (container.firstChild) container.removeChild(container.firstChild);
+        for (let i = 0; i < cards.length; i += 1) {
+          const chip = document.createElement("div");
+          chip.className = "chip";
+          chip.textContent = cards[i];
+          container.appendChild(chip);
+        }
+      }
+
+      function scheduleRender() {
+        if (renderQueued) return;
+        renderQueued = true;
+        requestAnimationFrame(render);
+      }
+
+      // Event wiring
+      document.addEventListener("keydown", handleKey);
+      els.noiseBtn.addEventListener("click", injectNoise);
+      els.resetBtn.addEventListener("click", resetShoe);
+      els.overlayBtn.addEventListener("click", toggleOverlay);
+      els.hardcoreBtn.addEventListener("click", toggleHardcore);
+      els.tTarget.addEventListener("click", () => setTarget("table"));
+      els.pTarget.addEventListener("click", () => setTarget("player"));
+      els.dTarget.addEventListener("click", () => setTarget("dealer"));
+
+      // Initial render
+      scheduleRender();
+    })();
+  </script>
 </body>
 </html>
