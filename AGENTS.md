@@ -1,5 +1,12 @@
 # Agent Workflows and Commands
 
+## Plan / Signal Agent (trade-plan completion)
+- Goal: ensure every trade plan has concrete `entry_price` and `stop_price` so sizing can proceed.
+- Inputs: `artifacts/signals/trade_plans.json`
+- Behavior: pulls live quotes (Yahoo batch; Stooq fallback) and applies configurable buffers (default +0.10% entry, 1.0% stop distance). Appends an inference note to each auto-filled plan.
+- Guardrails: best-effort only; if a quote is unavailable, leave the plan untouched and report the symbol.
+- Output: updates `artifacts/signals/trade_plans.json` in place with filled prices.
+
 ## Research Agent (daily market prep)
 - Goal: regime read, catalysts, key levels, filtered watchlist.
 - Inputs: `inputs/preferences.json`, `inputs/universe.txt`, `inputs/strategy_spec.md`, `inputs/data_sources.md`; optional `artifacts/signals/screener.json`.
@@ -16,6 +23,9 @@
 
 ## Commands
 ```bash
+# Fill missing entry/stop using live quotes (defaults: +0.10% entry buffer, 1.0% stop distance)
+./agent_runner.py plan --entry-buffer-pct 0.10 --stop-pct 1.0
+
 # Validate research inputs (writes stub outputs)
 ./agent_runner.py research --stub
 

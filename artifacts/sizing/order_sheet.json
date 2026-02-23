@@ -1,1 +1,24 @@
-[]
+[
+  {
+    "symbol": "RXT",
+    "direction": "long",
+    "entry": "premarket high break with volume surge",
+    "stop": 1.6649,
+    "risk_per_trade_usd": 4.0,
+    "unit_size": 118,
+    "unit_type": "shares",
+    "max_loss_if_stopped": 1.98,
+    "notes": ""
+  },
+  {
+    "symbol": "GFAI",
+    "direction": "long",
+    "entry": "first pullback hold above VWAP after opening drive",
+    "stop": 0.5296,
+    "risk_per_trade_usd": 4.0,
+    "unit_size": 373,
+    "unit_type": "shares",
+    "max_loss_if_stopped": 1.98,
+    "notes": ""
+  }
+]

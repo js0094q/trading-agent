@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
-Minimal orchestrator for the two trading agents:
+Minimal orchestrator for three trading agents:
+- plan: fills missing entry_price / stop_price so sizing can proceed
 - research: validates required inputs and (optionally) writes stub outputs
 - sizing: computes position sizes from trade_plans.json with strict guardrails
 
@@ -14,8 +15,11 @@ import argparse
 import json
 import math
 import sys
+import time
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Tuple
+from urllib.error import HTTPError, URLError
+from urllib.request import urlopen
 
 BASE_DIR = Path(__file__).parent.resolve()
 INPUTS = BASE_DIR / "inputs"
@@ -40,6 +44,147 @@ def ensure_nonempty(paths: List[Path]) -> List[Path]:
         if not p.exists() or p.stat().st_size == 0:
             missing.append(p)
     return missing
+
+
+# ---------- Signal / Trade-Plan Agent ----------
+
+
+def fetch_quotes(symbols: List[str]) -> Dict[str, float]:
+    """
+    Best-effort quote fetch:
+    1) Batch from Yahoo Finance (fast, may rate-limit)
+    2) Per-symbol fallback from Stooq (lightweight, daily)
+    """
+    if not symbols:
+        return {}
+
+    results: Dict[str, float] = {}
+    remaining = [s.upper() for s in symbols]
+
+    # --- Yahoo batch ---
+    joined = ",".join(remaining)
+    url = f"https://query1.finance.yahoo.com/v7/finance/quote?symbols={joined}"
+    try:
+        with urlopen(url, timeout=5) as resp:  # nosec: standard HTTPS endpoint
+            payload = json.load(resp)
+        for item in payload.get("quoteResponse", {}).get("result", []):
+            sym = item.get("symbol", "").upper()
+            price = (
+                item.get("regularMarketPrice")
+                or item.get("postMarketPrice")
+                or item.get("regularMarketPreviousClose")
+            )
+            if sym and price is not None:
+                results[sym] = float(price)
+    except (HTTPError, URLError, TimeoutError, json.JSONDecodeError):
+        pass  # fall through to stooq
+
+    remaining = [s for s in remaining if s not in results]
+    if not remaining:
+        return results
+
+    # --- Stooq fallback (daily close, but better than missing) ---
+    for sym in remaining:
+        try:
+            url = (
+                f"https://stooq.pl/q/l/?s={sym.lower()}.us&f=sd2t2ohlcv&h&e=json"
+            )
+            with urlopen(url, timeout=5) as resp:  # nosec: standard HTTPS endpoint
+                payload = json.load(resp)
+            rows = payload.get("symbols") or payload.get("data") or payload
+            if isinstance(rows, list) and rows:
+                row = rows[0]
+                price = row.get("close") or row.get("c")
+                if price is not None:
+                    results[sym] = float(price)
+        except (HTTPError, URLError, TimeoutError, json.JSONDecodeError, TypeError):
+            continue
+
+    return results
+
+
+def run_plan(args: argparse.Namespace) -> int:
+    plans_path = ARTIFACTS / "signals" / "trade_plans.json"
+    missing = ensure_nonempty([plans_path])
+    if missing:
+        print("Signal agent halted. Missing or empty files:")
+        for m in missing:
+            print(f"- {m}")
+        return 1
+
+    try:
+        plans = read_json(plans_path)
+    except ValueError as e:
+        print(f"Signal agent halted. {e}")
+        return 1
+
+    if not isinstance(plans, list):
+        print("Signal agent halted. trade_plans.json must be a list.")
+        return 1
+
+    # Collect symbols needing fills.
+    symbols_missing = [
+        p.get("symbol", "").upper()
+        for p in plans
+        if p.get("entry_price") is None or p.get("stop_price") is None
+    ]
+    symbols_missing = [s for s in symbols_missing if s]
+
+    quotes: Dict[str, float] = {}
+    if symbols_missing:
+        quotes = fetch_quotes(symbols_missing)
+
+    filled: List[Tuple[str, float, float]] = []
+    skipped: List[Tuple[str, str]] = []
+    now_ts = int(time.time())
+
+    for plan in plans:
+        symbol = plan.get("symbol", "").upper()
+        direction = plan.get("direction", "long").lower()
+        entry = plan.get("entry_price")
+        stop = plan.get("stop_price")
+
+        if entry is not None and stop is not None:
+            continue
+
+        quote = quotes.get(symbol)
+        if quote is None:
+            skipped.append((symbol, "quote unavailable; supply entry/stop manually"))
+            continue
+
+        entry_buffer = args.entry_buffer_pct / 100.0
+        stop_pct = args.stop_pct / 100.0
+
+        if direction == "short":
+            entry_price = quote * (1 - entry_buffer)
+            stop_price = entry_price * (1 + stop_pct)
+        else:
+            entry_price = quote * (1 + entry_buffer)
+            stop_price = entry_price * (1 - stop_pct)
+
+        plan["entry_price"] = round(entry_price, 4)
+        plan["stop_price"] = round(stop_price, 4)
+        note = plan.get("note", "").strip()
+        fill_note = (
+            f"Inference: auto-filled {symbol} from live quote {quote:.4f} "
+            f"(stop buffer {stop_pct*100:.2f}%, entry buffer {entry_buffer*100:.2f}%, ts={now_ts})."
+        )
+        plan["note"] = f"{note} {fill_note}".strip()
+        filled.append((symbol, plan["entry_price"], plan["stop_price"]))
+
+    # Persist updated plans.
+    plans_path.write_text(json.dumps(plans, indent=2), encoding="utf-8")
+
+    print(f"Updated {plans_path}")
+    if filled:
+        print("Filled entry/stop for:")
+        for sym, e, s in filled:
+            print(f"- {sym}: entry={e}, stop={s}")
+    if skipped:
+        print("Skipped:")
+        for sym, reason in skipped:
+            print(f"- {sym}: {reason}")
+    return 0
 
 
 # ---------- Research Agent ----------
@@ -266,9 +411,29 @@ def run_sizing(args: argparse.Namespace) -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Starter runner for research and sizing agents."
+        description="Starter runner for plan, research, and sizing agents."
     )
     sub = parser.add_subparsers(dest="cmd")
+
+    p_plan = sub.add_parser(
+        "plan",
+        help=(
+            "fill missing entry_price/stop_price in trade_plans.json using live quotes "
+            "and simple buffer rules"
+        ),
+    )
+    p_plan.add_argument(
+        "--entry-buffer-pct",
+        type=float,
+        default=0.10,
+        help="buffer applied to quote for entry (percent). default: 0.10%%",
+    )
+    p_plan.add_argument(
+        "--stop-pct",
+        type=float,
+        default=1.0,
+        help="distance from entry to stop (percent). default: 1.0%%",
+    )
 
     p_research = sub.add_parser("research", help="validate inputs for research agent")
     p_research.add_argument(
@@ -287,6 +452,8 @@ def main() -> int:
     )
 
     args = parser.parse_args()
+    if args.cmd == "plan":
+        return run_plan(args)
     if args.cmd == "research":
         return run_research(args)
     if args.cmd == "sizing":

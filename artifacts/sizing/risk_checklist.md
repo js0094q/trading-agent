@@ -6,10 +6,8 @@
 - Max total concurrent risk: 14.00%
 
 ## Skipped / Notes
-- RXT: missing entry or stop
-- GFAI: missing entry or stop
-- CDIO: missing entry or stop
-- SGN: missing entry or stop
-- MGRX: missing entry or stop
-- TQQQ: missing entry or stop
-- SOXL: missing entry or stop
+- CDIO: exceeds max_positions
+- SGN: exceeds max_positions
+- MGRX: exceeds max_positions
+- TQQQ: exceeds max_positions
+- SOXL: exceeds max_positions
