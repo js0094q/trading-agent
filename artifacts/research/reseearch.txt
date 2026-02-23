@@ -1,0 +1,142 @@
+# Daily Market Prep Brief — Codex Agent (Markdown Template)
+
+**Date:** {{YYYY-MM-DD}}  
+**Session:** RTH (09:30–16:00 ET) | PM/AH: optional  
+**Market:** US Equities (adjust as needed)  
+**Timeframe Focus:** {{1m | 5m | 15m}}  
+**Strategy Focus:** {{VWAP Reclaim | ORB | Mean Reversion | Momentum Breakout | Other}}  
+**Data Window Used:** {{last 20 sessions + premarket today}}  
+**Assumptions:** Slippage = {{__}} bps, Commissions = ${{__}} / trade, Min avg volume = {{__}}, Max spread = {{__}}
+
+---
+
+## 1) Executive Summary (30 seconds)
+- **Regime (Trend vs Chop):** **{{Trend | Chop | Mixed}}**
+  - **Why:** {{one-line reason tied to VWAP/structure/breadth}}
+- **Volatility Regime:** **{{Low | Normal | Elevated}}**
+  - **Proxy:** {{ATR/VIX/opening range vs avg}}
+- **Today’s Edge (if any):** {{what tends to work today + when}}
+- **Key Risk:** {{top risk: catalysts/headlines/liquidity/gaps}}
+
+---
+
+## 2) Conditions That Favor the Strategy Today
+
+### 2.1 Trend-Favorable Conditions (green lights)
+- **Market structure:** {{above VWAP, clean ORB break + retest, HH/HL}}
+- **Breadth/participation:** {{A/D strong, sectors confirming}}
+- **Volatility behavior:** {{range expansion + follow-through}}
+- **Liquidity:** {{tight spreads, stable depth}}
+
+### 2.2 Chop-Favorable Conditions (yellow lights)
+- **Market structure:** {{VWAP magnet, failed breaks, inside day}}
+- **Volatility behavior:** {{compressed ranges, fast reversals}}
+- **Implication:** Prefer mean reversion, smaller targets, faster time-stops.
+
+### 2.3 Red Flags (no-trade or reduce aggression)
+- **Event risk windows:** {{Fed/CPI/jobs/earnings cluster}}
+- **Microstructure:** {{spreads widening, thin book}}
+- **Tape behavior:** {{wicky candles, stop-runs, low follow-through}}
+- **Gaps:** {{large gap into HTF level without stabilization}}
+
+---
+
+## 3) Market Regime Diagnostics (inputs → inference)
+> Label each as **Data** or **Inference**.
+
+### 3.1 Index Context (SPY/QQQ/IWM or benchmark)
+- **Data:**
+  - Prior day range: {{__}}
+  - Today gap: {{__}}%
+  - Premarket high/low: {{__}} / {{__}}
+  - VWAP posture: {{above | below | around}}
+  - Key levels: PDH/PDL, ONH/ONL, weekly pivots, HTF levels
+- **Inference:**
+  - **Bias:** {{trend continuation | mean reversion | balanced}}
+  - **Playbook:** {{ORB → trend rules | fade extremes → VWAP | wait for break}}
+
+### 3.2 Volatility / Range Expansion
+- **Data:**
+  - ATR(14): {{__}}
+  - 20-day ATR avg: {{__}}
+  - Opening 30-min range vs average: {{__}}
+- **Inference:** {{vol level + what it implies for targets/time-stops}}
+
+### 3.3 Liquidity + Tradability Filters
+- **Minimum liquidity thresholds (define once):**
+  - Avg daily volume: ≥ {{__}}
+  - Relative volume (RVol): ≥ {{__}}
+  - Spread: ≤ {{__}} (or ≤ {{__}}% of price)
+  - Price: ${{__}}–${{__}} (optional)
+- **Today’s read:**
+  - Liquidity: {{strong | ok | weak}}
+  - Notes: {{large caps clean; small caps sloppy; etc.}}
+
+---
+
+## 4) Catalysts & Event Risk (board awareness)
+
+### 4.1 Macro / Scheduled
+| Time (ET) | Event | Expected Impact | Plan |
+|---:|---|---|---|
+| 08:30 | {{__}} | {{High/Med/Low}} | Avoid new entries ±{{__}} min |
+| 10:00 | {{__}} | {{High/Med/Low}} | Tighten risk / reduce size |
+| 14:00 | {{__}} | {{High/Med/Low}} | Cut exposure / go flat |
+
+### 4.2 Company / Sector Catalysts
+- **Earnings:** {{tickers}}
+- **Upgrades/Downgrades:** {{tickers}}
+- **Sector headlines:** {{theme + tickers}}
+- **Special situations:** {{splits, M&A, guidance, litigation}}
+
+---
+
+## 5) Watchlist Candidates (filtered)
+> **Not a trade call.** Ranked list of “clean charts + liquidity + catalyst context.”
+
+### 5.1 Watchlist Table
+| Rank | Symbol | Catalyst / Context | Liquidity (Vol/Spread) | Key Levels | Regime Fit | Notes |
+|---:|---|---|---|---|---|---|
+| 1 | {{__}} | {{__}} | Vol: {{__}} / Spread: {{__}} | ONH/ONL, PDH/PDL, VWAP, HTF | {{Trend/Chop}} | {{__}} |
+| 2 | {{__}} | {{__}} | Vol: {{__}} / Spread: {{__}} | {{__}} | {{Trend/Chop}} | {{__}} |
+| 3 | {{__}} | {{__}} | Vol: {{__}} / Spread: {{__}} | {{__}} | {{Trend/Chop}} | {{__}} |
+
+### 5.2 Per-Symbol Quick Notes (optional)
+#### {{SYMBOL}}
+- **Why on list:** {{clean level, RVol, catalyst, sector strength}}
+- **Key levels:** ONH/ONL, PDH/PDL, VWAP, HTF
+- **Invalidation:** {{spread widens, volume fades, messy tape}}
+- **Caution:** {{halts, wide options, low float, news sensitivity}}
+
+---
+
+## 6) “If-Then” Board Preparation (scenarios only)
+
+### Scenario A: Trend Day Developing
+- **If:** index holds above/below VWAP and expands range with breadth confirmation  
+- **Then:** prioritize trend-fit names; avoid fading strength; allow wider time-stops.
+
+### Scenario B: Chop / Mean Reversion Day
+- **If:** repeated VWAP crossings, failed breakouts, narrow range  
+- **Then:** prioritize mean-reversion; smaller targets; faster exits.
+
+### Scenario C: Event-Driven Volatility
+- **If:** major event within next {{__}} minutes  
+- **Then:** avoid new risk; reduce exposure; wait for post-event structure.
+
+---
+
+## 7) Hand-off to Signal Agent (artifacts)
+Provide:
+- **Final watchlist:** symbols + rank  
+- **Key levels per symbol:** ONH/ONL, PDH/PDL, VWAP, HTF  
+- **Regime read:** trend/chop + volatility level  
+- **Constraints:** liquidity thresholds + no-trade windows
+
+**Export:** `artifacts/research/watchlist.json` and `artifacts/research/daily_brief.md`
+
+---
+
+## 8) Disclaimers
+- This document is **market preparation and risk framing**, not a recommendation to buy/sell any security.  
+- All conclusions depend on the accuracy and completeness of the input data.

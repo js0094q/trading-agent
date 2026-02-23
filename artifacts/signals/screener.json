@@ -1,0 +1,4 @@
+[
+  {"symbol": "NVDA", "rvol": 1.6, "spread_pct": 0.0008, "note": "liquid, clean daily flag"},
+  {"symbol": "AAPL", "rvol": 1.2, "spread_pct": 0.0006, "note": "mega-cap, tight spreads"}
+]

@@ -1,0 +1,5 @@
+.DS_Store
+artifacts/research/.DS_Store
+artifacts/.DS_Store
+node_modules
+.vercel

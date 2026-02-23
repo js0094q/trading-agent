@@ -1,0 +1,21 @@
+[
+  {
+    "symbol": "NVDA",
+    "direction": "long",
+    "entry": "breakout above intraday flag",
+    "entry_price": 800.0,
+    "stop_price": 780.0,
+    "lot_size": 1,
+    "max_shares": 200,
+    "max_notional": 120000
+  },
+  {
+    "symbol": "AAPL",
+    "direction": "short",
+    "entry": "VWAP rejection after failed push",
+    "entry_price": 180.0,
+    "stop_price": 185.0,
+    "lot_size": 1,
+    "no_short": false
+  }
+]
