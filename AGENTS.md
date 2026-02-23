@@ -1,8 +1,18 @@
 # Agent Workflows and Commands
 
-## Workflows
-- Research agent generates a daily market prep brief and watchlist from inputs and optional screener signals.
-- Sizing agent converts trade plans into executable order sizes and a risk checklist based on account equity and limits.
+## Research Agent (daily market prep)
+- Goal: regime read, catalysts, key levels, filtered watchlist.
+- Inputs: `inputs/preferences.json`, `inputs/universe.txt`, `inputs/strategy_spec.md`, `inputs/data_sources.md`; optional `artifacts/signals/screener.json`.
+- Guardrails: educational only; no trades/APIs; if any required input missing/empty, stop and report instead of guessing.
+- Outputs: `artifacts/research/daily_brief.md` (regime, volatility, liquidity, catalysts, watchlist rationale) and `artifacts/research/watchlist.json` (bias, thesis, key_levels, notes per symbol).
+- Process: load inputs → derive regime/vol/liquidity from provided data → fold catalysts if supplied → rank watchlist by liquidity/clean levels/catalyst fit → write both outputs; mark inference explicitly; done only when both files exist (or note no symbols qualified).
+
+## Sizing Agent (risk & position sizing)
+- Goal: convert trade plans into executable order sizes and risk controls with zero ambiguity.
+- Required inputs: `account_equity_usd`, risk limits from `inputs/preferences.json` (max_risk_per_trade_pct, max_daily_loss_pct, max_positions, max_total_concurrent_risk_pct), trade plans `artifacts/signals/trade_plans.json`; optional per-instrument constraints (max_shares, no_short, lot_size, max_notional).
+- Rules: reject plans missing entry/stop or non-positive stop distance; `risk_per_trade_usd = equity * max_risk_per_trade_pct`; `size_units = risk_per_trade_usd / |entry - stop|`; round down to tradable unit; enforce instrument and portfolio caps; if size < 1 unit, mark "skip: stop too tight"; no leverage assumptions unless provided.
+- Outputs: `artifacts/sizing/order_sheet.json` (direction, entry, stop, risk_per_trade_usd, unit_size/type, max_loss_if_stopped, notes) and `artifacts/sizing/risk_checklist.md` (daily stop, circuit breakers, max trades, skips/violations).
+- Process: validate required inputs → per-plan validation and sizing → apply portfolio/instrument constraints → write both outputs; success only when every plan is sized or explicitly skipped.
 
 ## Commands
 ```bash
@@ -15,4 +25,4 @@
 
 ## Notes
 - Inputs live in `inputs/` and signal outputs in `artifacts/signals/`.
-- Research outputs are written to `artifacts/research/`; sizing outputs go to `artifacts/sizing/`.
+- Research outputs write to `artifacts/research/`; sizing outputs to `artifacts/sizing/`.
