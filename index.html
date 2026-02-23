@@ -37,6 +37,18 @@
     }
     h1 { margin: 0 0 12px; font-size: 32px; letter-spacing: -0.5px; }
     p { margin: 0 0 12px; color: var(--muted); }
+    .cta-row { display:flex; flex-wrap:wrap; gap:12px; margin:14px 0 6px; }
+    .cta {
+      display:inline-flex; align-items:center; gap:8px;
+      padding:10px 14px; border-radius:10px;
+      background: #1b2736; color: var(--text);
+      border: 1px solid #243449;
+      text-decoration: none; font-weight:600; letter-spacing:0.1px;
+      transition: transform 120ms ease, border-color 120ms ease, background 120ms ease;
+    }
+    .cta:hover { transform: translateY(-2px); border-color: var(--accent); }
+    .cta.primary { background: var(--accent); color: #0a120f; border-color: var(--accent); }
+    .cta.primary:hover { background: #6eee9a; }
     .pill {
       display: inline-block;
       padding: 6px 10px;
@@ -94,6 +106,10 @@
           <li>Research: validates inputs and can emit stub outputs.</li>
           <li>Sizing: strict stop-distance checks, clamps to risk caps.</li>
         </ul>
+        <div class="cta-row">
+          <a class="cta primary" href="https://github.com/js0094q/trading-agent" target="_blank" rel="noreferrer">GitHub Repo</a>
+          <a class="cta" href="README.md" target="_blank">README</a>
+        </div>
       </div>
       <div class="panel">
         <h3>Inputs</h3>
@@ -108,10 +124,10 @@
       <div class="panel">
         <h3>Outputs</h3>
         <ul>
-          <li><code>artifacts/research/daily_brief.md</code></li>
-          <li><code>artifacts/research/watchlist.json</code></li>
-          <li><code>artifacts/sizing/order_sheet.json</code></li>
-          <li><code>artifacts/sizing/risk_checklist.md</code></li>
+          <li><a href="artifacts/research/daily_brief.md" target="_blank">daily_brief.md</a></li>
+          <li><a href="artifacts/research/watchlist.json" target="_blank">watchlist.json</a></li>
+          <li><a href="artifacts/sizing/order_sheet.json" target="_blank">order_sheet.json</a></li>
+          <li><a href="artifacts/sizing/risk_checklist.md" target="_blank">risk_checklist.md</a></li>
         </ul>
       </div>
     </div>
